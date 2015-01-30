@@ -37,29 +37,21 @@
             interval: 100,
             sensitivity: 6,
             timeout: 0
-        };
-
-        if ( typeof handlerIn === "object" ) {
-            cfg = $.extend(cfg, handlerIn );
-        } else if ($.isFunction(handlerOut)) {
-            cfg = $.extend(cfg, { over: handlerIn, out: handlerOut, selector: selector } );
-        } else {
-            cfg = $.extend(cfg, { over: handlerIn, out: handlerIn, selector: handlerOut } );
-        }
+        }, 
 
         // instantiate variables
         // cX, cY = current X and Y position of mouse, updated by mousemove event
         // pX, pY = previous X and Y position of mouse, set by mouseover and polling interval
-        var cX, cY, pX, pY;
+        cX, cY, pX, pY,
 
         // A private function for getting mouse position
-        var track = function(ev) {
+        track = function(ev) {
             cX = ev.pageX;
             cY = ev.pageY;
-        };
+        },
 
         // A private function for comparing current and previous mouse position
-        var compare = function(ev,ob) {
+        compare = function(ev,ob) {
             ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
             // compare mouse positions to see if they've crossed the threshold
             if ( Math.sqrt( (pX-cX)*(pX-cX) + (pY-cY)*(pY-cY) ) < cfg.sensitivity ) {
@@ -73,20 +65,20 @@
                 // use self-calling timeout, guarantees intervals are spaced out properly (avoids JavaScript timer bugs)
                 ob.hoverIntent_t = setTimeout( function(){compare(ev, ob);} , cfg.interval );
             }
-        };
+        }, 
 
         // A private function for delaying the mouseOut function
-        var delay = function(ev,ob) {
+        delay = function(ev,ob) {
             ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t);
             ob.hoverIntent_s = false;
             return cfg.out.apply(ob,[ev]);
-        };
+        }, 
 
         // A private function for handling mouse 'hovering'
-        var handleHover = function(e) {
+        handleHover = function(e) {
             // copy objects to be passed into t (required for event object to be passed in IE)
-            var ev = $.extend({},e);
-            var ob = this;
+            var ev = $.extend({},e),
+                ob = this;
 
             // cancel hoverIntent timer if it exists
             if (ob.hoverIntent_t) { ob.hoverIntent_t = clearTimeout(ob.hoverIntent_t); }
@@ -108,6 +100,14 @@
                 if (ob.hoverIntent_s) { ob.hoverIntent_t = setTimeout( function(){delay(ev,ob);} , cfg.timeout );}
             }
         };
+
+        if ( typeof handlerIn === "object" ) {
+            cfg = $.extend(cfg, handlerIn );
+        } else if ($.isFunction(handlerOut)) {
+            cfg = $.extend(cfg, { over: handlerIn, out: handlerOut, selector: selector } );
+        } else {
+            cfg = $.extend(cfg, { over: handlerIn, out: handlerIn, selector: handlerOut } );
+        }
 
         // listen for mouseenter and mouseleave
         return this.on({'mouseenter.hoverIntent':handleHover,'mouseleave.hoverIntent':handleHover}, cfg.selector);
